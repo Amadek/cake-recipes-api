@@ -1,0 +1,7 @@
+version: '3'
+services:
+  api:
+    container_name: 'recipes-api'
+    build: .
+    ports:
+      - '3000:3000'
