@@ -4,7 +4,9 @@ ADD . /app
 
 WORKDIR /app
 
-RUN npm install && npm run build
+RUN npm install
+
+RUN npm run build
 
 USER node
 

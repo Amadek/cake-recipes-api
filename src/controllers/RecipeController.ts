@@ -1,7 +1,7 @@
-import express, { Router, raw } from 'express';
+import express, { Router } from 'express';
 import { Recipe } from '../entities/Recipe';
 import { BadRequest } from 'http-errors';
-import { Config } from '../config';
+import { Db } from 'mongodb';
 
 /**
  * Controller performing CRUD operations on recipes.
@@ -10,7 +10,7 @@ export class RecipeController {
   /**
    * Initializes object.
    */
-  public constructor() { }
+  public constructor(private readonly _db: Db) { }
 
   /**
    * Sets up routes for a router and returns the router.
@@ -33,8 +33,9 @@ export class RecipeController {
       .then(recipe => {
         if (!recipe) throw new BadRequest();
 
-        res.send(JSON.stringify(recipe));
+        return this._addRecipeToDb(recipe);
       })
+      .then(() => res.status(200).send('OK'))
       .catch(next);
   }
 
@@ -56,5 +57,9 @@ export class RecipeController {
       howTo: rawRecipe.howTo,
       suplements: rawRecipe.suplements
     };
+  }
+
+  private _addRecipeToDb(recipe: Recipe): Promise<any> {
+    return this._db.collection('recipe').insertOne(recipe);
   }
 }

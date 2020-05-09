@@ -5,3 +5,8 @@ services:
     build: .
     ports:
       - '3000:3000'
+  db:
+    container_name: 'recipes-mongo'
+    image: 'mongo'
+    ports: 
+      - '27017:27017'

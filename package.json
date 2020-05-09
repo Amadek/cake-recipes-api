@@ -28,11 +28,13 @@
   "homepage": "https://github.com/Amadek/cake-recipes-api#readme",
   "dependencies": {
     "express": "^4.17.1",
-    "http-errors": "^1.7.3"
+    "http-errors": "^1.7.3",
+    "mongodb": "^3.5.7"
   },
   "devDependencies": {
     "@types/express": "^4.17.6",
     "@types/http-errors": "^1.6.3",
+    "@types/mongodb": "^3.5.16",
     "concurrently": "^5.2.0",
     "nodemon": "^2.0.3",
     "typescript": "^3.8.3"
