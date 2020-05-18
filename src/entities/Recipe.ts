@@ -6,20 +6,20 @@ export class Recipe {
   /**
    * Recipe name.
    */
-  public name: string = '';
+  public name?: string;
 
   /**
    * Recipe description.
    */
-  public description: string = '';
+  public description?: string;
 
   /**
    * Description of preparation way.
    */
-  public howTo: string = '';
+  public howTo?: string;
 
   /**
    * Array of suplements with quantity.
    */
-  public suplements: string[] = [];
+  public suplements?: string[];
 }
