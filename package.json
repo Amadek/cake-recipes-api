@@ -27,7 +27,9 @@
     "axios": "^0.19.2",
     "express": "^4.17.1",
     "http-errors": "^1.7.3",
-    "mongodb": "^3.5.7"
+    "mongodb": "^3.5.7",
+    "sanitize": "^2.1.0",
+    "validator": "^13.0.0"
   },
   "devDependencies": {
     "@shelf/jest-mongodb": "^1.1.5",
