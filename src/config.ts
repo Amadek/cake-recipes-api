@@ -4,11 +4,11 @@
  */
 export class Config {
   /** Api listening port. */
-  get port () { return 3000; }
+  get port (): number { return 3000; }
 
   /** Mongo connection Url. */
-  get mongoUrl () { return 'mongodb://recipes-mongo:27017'; }
+  get mongoUrl (): string { return 'mongodb://recipes-mongo:27017'; }
 
   /** Mongo database name. */
-  get mongoDbName () { return 'recipes'; }
+  get mongoDbName (): string { return 'recipes'; }
 }
