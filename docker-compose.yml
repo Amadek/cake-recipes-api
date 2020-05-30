@@ -10,3 +10,13 @@ services:
     image: 'mongo'
     ports: 
       - '27017:27017'
+  api-auth:
+    container_name: 'recipes-api-auth'
+    image: 'amadek/api-auth:0.0.1'
+    ports:
+      - '8181:8181'
+    environment: 
+      - PUT_TOKEN_URL='http://recipes-api/token'
+      # In docker-compose.override.yml to set.
+      # - GITHUB_CLIENT_ID=*****
+      # - GITHUB_CLIENT_SECRET=*****
