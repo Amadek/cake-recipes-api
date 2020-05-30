@@ -21,9 +21,9 @@ export class TokenController {
   /** Adds or updates user in db based on access token. */
   public putToken (req: Request, res: Response, next: NextFunction): void {
     // If token not provided, throw 'Bad Request'.
-    if (!req.query.token || typeof req.query.token !== 'string') throw new BadRequest('Access token not provided.');
+    if (!req.body.token || typeof req.body.token !== 'string') throw new BadRequest('Access token not provided.');
 
-    const accessToken: string = req.query.token as string;
+    const accessToken: string = req.body.token;
 
     Promise.resolve()
       .then(() => this._getUserFromGitHub(accessToken))

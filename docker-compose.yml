@@ -12,11 +12,12 @@ services:
       - '27017:27017'
   api-auth:
     container_name: 'recipes-api-auth'
-    image: 'amadek/api-auth:0.0.1'
+    image: 'amadek/api-auth:0.0.3'
     ports:
       - '8181:8181'
     environment: 
-      - PUT_TOKEN_URL='http://recipes-api/token'
+      - PORT=8181
+      - PUT_TOKEN_URL=http://recipes-api:3000/token
       # In docker-compose.override.yml to set.
       # - GITHUB_CLIENT_ID=*****
       # - GITHUB_CLIENT_SECRET=*****

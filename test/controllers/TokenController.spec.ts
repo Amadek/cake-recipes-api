@@ -23,7 +23,10 @@ describe('TokenController', () => {
       connection = conn;
       db = connection.db();
     })
-    .then(() => app.use('/token', new TokenController(db, axiosMock).route()))
+    .then(() => {
+      app.use(express.json());
+      app.use('/token', new TokenController(db, axiosMock).route());
+    })
   );
 
   beforeEach(() => db.collection('user').deleteMany({})
@@ -46,7 +49,7 @@ describe('TokenController', () => {
       // ACT
       request(app)
         .put('/token')
-        .query({ token: 'token' })
+        .send({ token: 'token' })
         // ASSERT
         .expect(201)
         .then(() => db.collection('user').findOne({ accessToken: 'token' }))
@@ -65,7 +68,7 @@ describe('TokenController', () => {
       // ACT
       request(app)
         .put('/token')
-        .query({ token: 'wrongToken' })
+        .send({ token: 'wrongToken' })
         // ASSERT
         .expect(404)
         .then(() => db.collection('user').findOne({ accessToken: 'wrongToken' }))
