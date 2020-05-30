@@ -2,14 +2,15 @@ import express, { Application } from 'express';
 import { RecipeController } from './controllers/RecipeController';
 import { TokenController } from './controllers/TokenController';
 import { NotFound } from 'http-errors';
-import { Config } from './config';
+import { IConfig } from './IConfig';
+import { Config } from './Config';
 import { DbConnector } from './DbConnector';
 import { DbInitializer } from './DbInitializer';
 import Axios, { AxiosInstance } from 'axios';
 import { TokenValidator } from './controllers/TokenValidator';
 
 const app: Application = express();
-const config: Config = new Config();
+const config: IConfig = new Config();
 const axios: AxiosInstance = Axios.create();
 
 Promise.resolve()

@@ -1,12 +1,15 @@
-import { MongoClient, Db, Collection } from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
 import { TokenValidator } from '../../src/controllers/TokenValidator';
 import { User } from '../../src/entities/User';
+import { IConfig } from '../../src/IConfig';
+import { TestConfig } from '../TestConfig';
 
 describe('TokenValidator', () => {
+  const config: IConfig = new TestConfig();
   let connection: MongoClient;
   let db: Db;
 
-  beforeAll(() => MongoClient.connect(process.env.MONGO_URL as string, {
+  beforeAll(() => MongoClient.connect(config.mongoUrl, {
       useNewUrlParser: true,
       useUnifiedTopology: true
     })
@@ -49,6 +52,6 @@ describe('TokenValidator', () => {
         .then(result => expect(result).toBeFalsy())
         .then(done)
         .catch(done);
-    })
+    });
   });
 });

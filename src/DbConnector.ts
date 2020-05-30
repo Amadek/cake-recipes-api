@@ -1,5 +1,5 @@
-import { Config } from "./config";
-import { MongoClient, Db } from "mongodb";
+import { MongoClient, Db } from 'mongodb';
+import { IConfig } from './IConfig';
 
 /**
  * Connects to Db based on config and returns it.
@@ -10,7 +10,7 @@ export class DbConnector {
    * Initializes object.
    * @param _config configuration
    */
-  public constructor (private readonly _config: Config) {
+  public constructor (private readonly _config: IConfig) {
     this._mongoClient = new MongoClient(this._config.mongoUrl, { useUnifiedTopology: true });
   }
 

@@ -1,14 +1,15 @@
+import { IConfig } from "./IConfig";
 
 /**
  * Configuration containing constants and environement variables.
  */
-export class Config {
-  /** Api listening port. */
+export class Config implements IConfig {
+  /** @inheritdoc */
   get port (): number { return 3000; }
 
-  /** Mongo connection Url. */
+  /** @inheritdoc */
   get mongoUrl (): string { return 'mongodb://recipes-mongo:27017'; }
 
-  /** Mongo database name. */
+  /** @inheritdoc */
   get mongoDbName (): string { return 'recipes'; }
 }
