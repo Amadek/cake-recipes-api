@@ -1,6 +1,6 @@
 import { Db } from 'mongodb';
 import express, { Router, Request, Response, NextFunction } from 'express';
-import { BadRequest } from 'http-errors'
+import { BadRequest } from 'http-errors';
 import { User } from '../entities/User';
 import { AxiosInstance } from 'axios';
 

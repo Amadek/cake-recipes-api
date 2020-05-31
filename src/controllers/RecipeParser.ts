@@ -7,7 +7,7 @@ import { IRecipeParser } from "./IRecipeParser";
  */
 export class RecipeParser implements IRecipeParser {
 
-  public parse(recipeJson: any): Recipe | null {
+  public parse (recipeJson: any): Recipe | null {
     if (!recipeJson) return null;
 
     const isValid: boolean = !!recipeJson.name && typeof recipeJson.name === 'string'

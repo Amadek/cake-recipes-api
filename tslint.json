@@ -1,8 +1,16 @@
 {
-    "extends": [
-        "tslint:recommended"
-    ],
-    "jsRules": {},
-    "rules": {},
-    "rulesDirectory": []
+  "extends": [
+    "tslint:recommended"
+  ],
+  "jsRules": {},
+  "rules": {
+    "semicolon": [true, "always"],
+    "no-console": {
+      "severity": "off",
+      "options": ["debug", "info", "log", "time", "timeEnd", "trace"]
+    },
+    "space-before-function-paren": true,
+    "indent": [true, "spaces", 2]
+  },
+  "rulesDirectory": []
 }
