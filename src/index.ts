@@ -8,6 +8,7 @@ import { DbConnector } from './DbConnector';
 import { DbInitializer } from './DbInitializer';
 import Axios, { AxiosInstance } from 'axios';
 import { TokenValidator } from './controllers/TokenValidator';
+import { RecipeParser } from './controllers/RecipeParser';
 
 const app: Application = express();
 const config: IConfig = new Config();
@@ -19,7 +20,7 @@ Promise.resolve()
   .then(db => {
     app.use(express.json());
     app.use('/token', new TokenController(db, axios).route());
-    app.use('/recipe', new RecipeController(new TokenValidator(db), db).route());
+    app.use('/recipe', new RecipeController(new TokenValidator(db), new RecipeParser(), db).route());
     // Any other route should throw Not Found.
     app.use((_req, _res, next) => next(new NotFound()));
     app.listen(config.port, () => console.log(`Listening on ${config.port}...`));

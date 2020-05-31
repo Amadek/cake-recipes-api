@@ -12,7 +12,7 @@ describe('RecipeParser', () => {
         suplements: ['suplement 1', 'suplement 2']
       };
       // ACT
-      const recipe: Recipe | null = new RecipeParser(recipeJson).parse();
+      const recipe: Recipe | null = new RecipeParser().parse(recipeJson);
       // ASSERT
       expect(recipe).toBeDefined();
     });
@@ -26,7 +26,7 @@ describe('RecipeParser', () => {
         suplements: 4
       };
       // ACT
-      const recipe: Recipe | null = new RecipeParser(recipeJson).parse();
+      const recipe: Recipe | null = new RecipeParser().parse(recipeJson);
       // ASSERT
       expect(recipe).toBeNull();
     });
@@ -40,7 +40,7 @@ describe('RecipeParser', () => {
         suplements: 4
       };
       // ACT
-      const recipe: Recipe | null = new RecipeParser(recipeJson).parse();
+      const recipe: Recipe | null = new RecipeParser().parse(recipeJson);
       // ASSERT
       expect(recipe).toBeNull();
     });
@@ -54,7 +54,7 @@ describe('RecipeParser', () => {
         suplements: 4
       };
       // ACT
-      const recipe: Recipe | null = new RecipeParser(recipeJson).parse();
+      const recipe: Recipe | null = new RecipeParser().parse(recipeJson);
       // ASSERT
       expect(recipe).toBeNull();
     });
@@ -68,7 +68,7 @@ describe('RecipeParser', () => {
         suplements: 4
       };
       // ACT
-      const recipe: Recipe | null = new RecipeParser(recipeJson).parse();
+      const recipe: Recipe | null = new RecipeParser().parse(recipeJson);
       // ASSERT
       expect(recipe).toBeNull();
     });
