@@ -2,8 +2,8 @@ import express, { Router, Request, Response, NextFunction } from 'express';
 import { Recipe } from '../entities/Recipe';
 import { BadRequest } from 'http-errors';
 import { Db } from 'mongodb';
-import { RecipeParser } from './RecipeParser';
 import { ITokenValidator } from './ITokenValidator';
+import { IRecipeParser } from './IRecipeParser';
 
 /**
  * Controller performing CRUD operations on recipes.
@@ -13,7 +13,7 @@ export class RecipeController {
    * Ctor.
    * @param _db database
    */
-  public constructor (private readonly _tokenValidator: ITokenValidator, private readonly _db: Db) { }
+  public constructor (private readonly _tokenValidator: ITokenValidator, private readonly _recipeParser: IRecipeParser, private readonly _db: Db) { }
 
   /**
    * Sets up routes for a router and returns the router.
@@ -34,20 +34,18 @@ export class RecipeController {
     Promise.resolve()
       .then(() => this._validateToken(req))
       .then(() => this._parseRecipe(req.body))
-      .then(recipe => {
-        if (!recipe) throw new BadRequest();
-
-        return this._addRecipeToDb(recipe);
-      })
-      .then(() => res.status(200).send('OK'))
+      .then(recipe => this._addRecipeToDb(recipe))
+      .then(() => res.status(201).send('Created'))
       .catch(next);
   }
 
   private _parseRecipe (recipeJson: any): Recipe | null {
-    return new RecipeParser(recipeJson).parse();
+    return this._recipeParser.parse(recipeJson);
   }
 
-  private _addRecipeToDb (recipe: Recipe): Promise<any> {
+  private _addRecipeToDb (recipe: Recipe | null): Promise<any> {
+    if (!recipe) throw new BadRequest();
+
     return this._db.collection('recipe').insertOne(recipe);
   }
 

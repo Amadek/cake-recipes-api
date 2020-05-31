@@ -1,31 +1,27 @@
 import { Recipe } from "../entities/Recipe";
+import { IRecipeParser } from "./IRecipeParser";
 
 /**
  * Parses recipe JSON from request.
  * If parsing failes, returns null.
  */
-export class RecipeParser {
-  /**
-   * Ctor.
-   * @param _recipeJson recipe as JSON object
-   */
-  public constructor (private readonly _recipeJson: any) { }
+export class RecipeParser implements IRecipeParser {
 
-  public parse(): Recipe | null {
-    if (!this._recipeJson) return null;
+  public parse (recipeJson: any): Recipe | null {
+    if (!recipeJson) return null;
 
-    const isValid: boolean = !!this._recipeJson.name && typeof this._recipeJson.name === 'string'
-      && !!this._recipeJson.description && typeof this._recipeJson.description === 'string'
-      && !!this._recipeJson.howTo && typeof this._recipeJson.howTo === 'string'
-      && Array.isArray(this._recipeJson.suplements);
+    const isValid: boolean = !!recipeJson.name && typeof recipeJson.name === 'string'
+      && !!recipeJson.description && typeof recipeJson.description === 'string'
+      && !!recipeJson.howTo && typeof recipeJson.howTo === 'string'
+      && Array.isArray(recipeJson.suplements);
 
     if (!isValid) return null;
 
     return {
-      name: this._recipeJson.name,
-      description: this._recipeJson.description,
-      howTo: this._recipeJson.howTo,
-      suplements: this._recipeJson.suplements
+      name: recipeJson.name,
+      description: recipeJson.description,
+      howTo: recipeJson.howTo,
+      suplements: recipeJson.suplements
     };
   }
 }

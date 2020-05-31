@@ -3,6 +3,9 @@
  * Recipe model stored in DB.
  */
 export class Recipe {
+  /** Recipe Id. */
+  public _id?: string;
+
   /**
    * Recipe name.
    */
