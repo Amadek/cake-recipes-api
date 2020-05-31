@@ -5,11 +5,11 @@ import { IConfig } from "./IConfig";
  */
 export class Config implements IConfig {
   /** @inheritdoc */
-  get port (): number { return 3000; }
+  get port (): number { return parseInt(process.env.PORT as string, 10); }
 
   /** @inheritdoc */
-  get mongoUrl (): string { return 'mongodb://recipes-mongo:27017'; }
+  get mongoUrl (): string { return process.env.MONGO_URL as string; }
 
   /** @inheritdoc */
-  get mongoDbName (): string { return 'recipes'; }
+  get mongoDbName (): string { return process.env.MONGO_DB_NAME as string; }
 }
