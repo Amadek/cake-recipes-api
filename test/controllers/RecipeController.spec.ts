@@ -51,7 +51,7 @@ describe('RecipeController', () => {
         // ASSERT
         .expect(400)
         .then(() => {
-          expect(tokenValidatorMock.validate).toBeCalled()
+          expect(tokenValidatorMock.validate).toBeCalled();
         })
         .then(done);
     });
@@ -110,6 +110,38 @@ describe('RecipeController', () => {
         })
         .then(recipeFromDB => {
           expect(recipeFromDB).toEqual(recipe);
+        })
+        .then(done);
+    });
+  });
+  describe('GET /recipe', () =>{
+    it('should return Bad Request when recipe name is empty', done => {
+      // ARRANGE
+      const query:string = "";
+      recipeParserMock.parse.mockReturnValue(null);
+      // ACT
+      request(app)
+        .get('/recipe')
+        .set('recipeName', query)
+        // ASSERT
+        .expect(400)
+        .then(() => {
+          expect(recipeParserMock.parse).toBeCalled();
+        })
+        .then(done);
+    });
+
+    it('should return Bad Request when recipe name is not alphanumeric', done => {
+      // ARRANGE
+      const query:string = '/*--_';
+      recipeParserMock.parse.mockReturnValue(null);
+      // ACT
+      request(app)
+        .get('/recipe')
+        .set('recipeName', query)
+        .expect(400)
+        .then(() => {
+          expect(recipeParserMock.parse).toBeCalled();
         })
         .then(done);
     });
