@@ -24,9 +24,11 @@
   },
   "homepage": "https://github.com/Amadek/cake-recipes-api#readme",
   "dependencies": {
+    "@types/jsrsasign": "^8.0.3",
     "axios": "^0.19.2",
     "express": "^4.17.1",
     "http-errors": "^1.7.3",
+    "jsrsasign": "^8.0.16",
     "mongodb": "^3.5.7"
   },
   "devDependencies": {

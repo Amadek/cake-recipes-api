@@ -12,4 +12,7 @@ export class Config implements IConfig {
 
   /** @inheritdoc */
   get mongoDbName (): string { return process.env.MONGO_DB_NAME as string; }
+
+  /** @inheritdoc */
+  get gitHubClientSecret () { return process.env.GITHUB_CLIENT_SECRET as string; }
 }

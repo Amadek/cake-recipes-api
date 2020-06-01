@@ -9,6 +9,7 @@ import { DbInitializer } from './DbInitializer';
 import Axios, { AxiosInstance } from 'axios';
 import { TokenValidator } from './controllers/TokenValidator';
 import { RecipeParser } from './controllers/RecipeParser';
+import { AuthController } from './controllers/AuthController';
 
 const app: Application = express();
 const config: IConfig = new Config();
@@ -19,6 +20,7 @@ Promise.resolve()
   .then(db => new DbInitializer(db).initialize())
   .then(db => {
     app.use(express.json());
+    app.use('/auth', new AuthController(axios, config).route());
     app.use('/token', new TokenController(db, axios).route());
     app.use('/recipe', new RecipeController(new TokenValidator(db), new RecipeParser(), db).route());
     // Any other route should throw Not Found.

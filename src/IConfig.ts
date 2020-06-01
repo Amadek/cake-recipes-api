@@ -11,4 +11,7 @@ export interface IConfig {
 
   /** Mongo database name. */
   mongoDbName: string;
+
+  /** GitHub client secret for OAuth. */
+  gitHubClientSecret: string;
 }
