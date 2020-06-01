@@ -101,13 +101,7 @@ export class RecipeController {
   private _fetchRecipeFromDbByName (name: string): Promise<any> {
     return this._db.collection('recipe').findOne({name});
   }
-=======
-  
-  private _fetchRecipeFromDbByName (name: string): Promise<any> {
-    return this._db.collection('recipe').findOne({name});
-  }
-  
->>>>>>> cad25b868c7ba2c9998a4f01bbcdcf7e5946623f
+
   private _fetchMultipleRecipes (query: string): Promise<any> {
     return this._db.collection('recipe').find({Name: new RegExp('^' + query)}).toArray();
   }
