@@ -5,13 +5,8 @@ import { Db } from 'mongodb';
 import { ITokenValidator } from './ITokenValidator';
 import { IRecipeParser } from './IRecipeParser';
 import { RecipeParser } from './RecipeParser';
-<<<<<<< HEAD
-import validator from 'validator';
 
 
-=======
-import { validator } from './validator';
->>>>>>> cad25b868c7ba2c9998a4f01bbcdcf7e5946623f
 
 /**
  * Controller performing CRUD operations on recipes.
@@ -84,47 +79,6 @@ export class RecipeController {
     .catch(next);
   }
 
-  /**
-   * Gets recipe from DB
-   * @param req request containing recipe name  
-   * @param res response
-   * @param next express callback
-   */
-  public getRecipe (req: Request, res: Response, next: NextFunction, recipeName:string): void {
-    var sanitizer = require('Sanitize')();
-    Promise.resolve()
-    .then(() => sanitizer.Sanitize(recipeName))
-    .then(()=> {
-      if (!validator.isAlphanumeric(recipeName)) throw new BadRequest();
-
-      return this._fetchRecipeFromDbByName(recipeName);
-      })
-
-    .then(() => res.status(200).send('OK'))
-    .catch(next)
-  }
-
-
-  /**
-   * Gets multiple recipes from database 
-   * @param req request containing letters 
-   * @param res response
-   * @param next express callback
-   */
-  public getMultipleRecipes (req: Request, res: Response, next: NextFunction, query:string): void {
-    var sanitizer = require('Sanitize')();
-    Promise.resolve()
-    .then(() => sanitizer.Sanitize(query))
-    .then(()=> {
-      if (!validator.isAlphanumeric(query)&& query.length < 3 ) throw new BadRequest();
-
-      return this._fetchMultipleRecipes(query);
-      })
-
-    .then(() => res.status(200).send('OK'))
-    .catch(next)
-  }
-
   private _parseRecipe (recipeJson: any): Recipe | null {
     return this._recipeParser.parse(recipeJson);
   }
@@ -134,7 +88,6 @@ export class RecipeController {
 
     return this._db.collection('recipe').insertOne(recipe);
   }
-<<<<<<< HEAD
 
   private _validateToken (req: Request): Promise<void> {
     if (!req.headers.authorization) throw new BadRequest();
