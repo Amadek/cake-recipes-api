@@ -5,9 +5,6 @@ import { Db } from 'mongodb';
 import { ITokenValidator } from './ITokenValidator';
 import { IRecipeParser } from './IRecipeParser';
 import { RecipeParser } from './RecipeParser';
-
-
-
 /**
  * Controller performing CRUD operations on recipes.
  */
