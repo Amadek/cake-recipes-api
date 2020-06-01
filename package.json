@@ -31,10 +31,6 @@
     "express": "^4.17.1",
     "http-errors": "^1.7.3",
     "mongodb": "^3.5.7",
-<<<<<<< HEAD
-=======
-    "sanitize": "^2.1.0",
->>>>>>> cad25b868c7ba2c9998a4f01bbcdcf7e5946623f
     "validator": "^13.0.0"
   },
   "devDependencies": {
