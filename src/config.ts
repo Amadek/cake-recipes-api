@@ -15,4 +15,7 @@ export class Config implements IConfig {
 
   /** @inheritdoc */
   get gitHubClientSecret () { return process.env.GITHUB_CLIENT_SECRET as string; }
+
+  /** @inheritdoc */
+  get jwtSignPassword () { return process.env.JWT_SIGN_PASSWORD as string; }
 }

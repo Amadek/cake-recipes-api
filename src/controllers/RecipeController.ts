@@ -2,8 +2,9 @@ import express, { Router, Request, Response, NextFunction } from 'express';
 import { Recipe } from '../entities/Recipe';
 import { BadRequest } from 'http-errors';
 import { Db } from 'mongodb';
-import { ITokenValidator } from './ITokenValidator';
 import { IRecipeParser } from './IRecipeParser';
+import { IJwtManager } from './IJwtManager';
+import { User } from '../entities/User';
 
 /**
  * Controller performing CRUD operations on recipes.
@@ -13,7 +14,7 @@ export class RecipeController {
    * Ctor.
    * @param _db database
    */
-  public constructor (private readonly _tokenValidator: ITokenValidator, private readonly _recipeParser: IRecipeParser, private readonly _db: Db) { }
+  public constructor (private readonly _jwtManager: IJwtManager, private readonly _recipeParser: IRecipeParser, private readonly _db: Db) { }
 
   /**
    * Sets up routes for a router and returns the router.
@@ -31,10 +32,13 @@ export class RecipeController {
    * @param next express callback
    */
   public postRecipe (req: Request, res: Response, next: NextFunction): void {
+    const user: User = this._parseJwt(req);
+    const recipe: Recipe | null = this._parseRecipe(req.body);
+    if (!recipe) throw new BadRequest();
+    recipe.ownerId = user.id;
+
     Promise.resolve()
-      .then(() => this._validateToken(req))
-      .then(() => this._parseRecipe(req.body))
-      .then(recipe => this._addRecipeToDb(recipe))
+      .then(() => this._addRecipeToDb(recipe))
       .then(() => res.status(201).send('Created'))
       .catch(next);
   }
@@ -49,15 +53,14 @@ export class RecipeController {
     return this._db.collection('recipe').insertOne(recipe);
   }
 
-  private _validateToken (req: Request): Promise<void> {
+  private _parseJwt (req: Request): User {
     if (!req.headers.authorization) throw new BadRequest();
 
-    const token = req.headers.authorization.replace('Bearer ', '');
+    const jwt = req.headers.authorization.replace('Bearer ', '');
+    const user: User | null = this._jwtManager.parse(jwt);
 
-    return Promise.resolve()
-      .then(() => this._tokenValidator.validate(token))
-      .then(result => {
-        if (!result) throw new BadRequest();
-      });
+    if (!user) throw new BadRequest();
+
+    return user;
   }
 }

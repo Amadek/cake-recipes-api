@@ -1,11 +1,11 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import { AxiosInstance } from 'axios';
 import { BadRequest } from 'http-errors';
-import { KJUR } from 'jsrsasign';
 import { IConfig } from '../IConfig';
+import { IJwtManager } from './IJwtManager';
 
 export class AuthController {
-  public constructor (private readonly _axios: AxiosInstance, private readonly _config: IConfig) { }
+  public constructor (private readonly _axios: AxiosInstance, private readonly _jwtManager: IJwtManager, private readonly _config: IConfig) { }
 
   public route (): Router {
     const router: Router = express.Router();
@@ -15,40 +15,36 @@ export class AuthController {
   }
 
   public getAuth (req: Request, res: Response): void {
-    if (typeof req.query.client_id !== 'string') throw new BadRequest();
+    if (!req.query.client_id || typeof req.query.client_id !== 'string') throw new BadRequest();
 
-    let redirectUri: string = this._axios.getUri({
+    const redirectUri: string = this._axios.getUri({
       method: 'GET',
       url: this._getBaseUrl(req) + '/redirect',
       params: { client_id: req.query.client_id }
     });
 
-    redirectUri = 'http://' + redirectUri;
-
-    console.log(redirectUri);
-
-    const url: string = this._axios.getUri({
+    const authorizeUri: string = this._axios.getUri({
       method: 'GET',
       url: 'https://github.com/login/oauth/authorize',
       params: {
         client_id: req.query.client_id,
-        redirect_uri: redirectUri
+        redirect_uri: 'http://' + redirectUri
       }
     });
 
-    res.redirect(url);
+    res.redirect(authorizeUri);
   }
 
   public getAuthRedirect (req: Request, res: Response, next: NextFunction): void {
     // If code aka request token not provided, throw Bad Request.
-    if (typeof req.query.client_id !== 'string' || typeof req.query.code !== 'string') throw new BadRequest();
+    if (!req.query.client_id || typeof req.query.client_id !== 'string' || !req.query.code || typeof req.query.code !== 'string') throw new BadRequest();
 
     const clientId: string = req.query.client_id;
     const requestToken: string = req.query.code;
 
     Promise.resolve()
       .then(() => this._getAccessToken(clientId, requestToken))
-      .then(accessToken => this.createJsonWebToken(accessToken))
+      .then(accessToken => this._createJsonWebToken(accessToken))
       .then(jwt => res.status(201).send(jwt))
       .catch(next);
   }
@@ -67,7 +63,7 @@ export class AuthController {
     .then(response => response.data.access_token);
   }
 
-  private createJsonWebToken (accessToken: string): Promise<string> {
+  private _createJsonWebToken (accessToken: string): Promise<string> {
     return Promise.resolve()
       .then(() => this._axios.get('https://api.github.com/user', {
         headers: {
@@ -75,15 +71,7 @@ export class AuthController {
           accept: 'application/json'
         }
       }))
-      .then(gitHubUser => {
-        const header: any = { alg: 'HS256' };
-        const payload: any = {
-          sourceUserId: gitHubUser.data.Id, // TODO this member is not included after decrypting, why?
-          accessToken
-        };
-        const jwt: string = KJUR.jws.JWS.sign('HS256', header, payload, 'password');
-        return jwt;
-      });
+      .then(gitHubUser => this._jwtManager.create(gitHubUser.data.id, accessToken));
   }
 
   private _getBaseUrl (req: Request): string {

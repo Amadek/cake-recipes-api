@@ -14,4 +14,7 @@ export interface IConfig {
 
   /** GitHub client secret for OAuth. */
   gitHubClientSecret: string;
+
+  /** Password for signing JSON Web Tokens using for authorisation. */
+  jwtSignPassword: string;
 }
