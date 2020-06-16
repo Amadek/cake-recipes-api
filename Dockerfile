@@ -4,10 +4,8 @@ ADD . /app
 
 WORKDIR /app
 
-RUN npm install
-
-RUN npm run build
+RUN npm install && npx tsc
 
 USER node
 
-CMD [ "npm", "start" ]
+CMD [ "./run.sh" ]

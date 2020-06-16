@@ -31,14 +31,21 @@ describe('AuthController', () => {
         .expect(400, done);
     });
 
-    it('should return Redirected when valid clientId', done => {
+    it('should throw Bad Request when wrong redirect_url', done => {
+      request(app)
+        .get('/auth')
+        .query({ client_id: 'clientId', redirect_url: '' })
+        .expect(400, done);
+    });
+
+    it('should return Redirected when valid client_id and redirect_url', done => {
       // ARRANGE
       axiosMock.getUri.mockReturnValue('uri');
 
       // ACT
       request(app)
         .get('/auth')
-        .query({ client_id: 'clientId' })
+        .query({ client_id: 'clientId', redirect_url: 'redirectUrl' })
         // ASSERT
         .expect(302, done);
     });
@@ -59,6 +66,13 @@ describe('AuthController', () => {
         .expect(400, done);
     });
 
+    it('should throw Bad Request when invalid redirect_url', done => {
+      request(app)
+        .get('/auth/redirect')
+        .query({ client_id: 'clientId', requestToken: 'requestToken', redirect_url: '' })
+        .expect(400, done);
+    });
+
     it('should return NotFound when GitHub is saying request token is wrong', done => {
       // ARRANGE
       axiosMock.post.mockImplementation(() => { throw new NotFound(); });
@@ -66,7 +80,7 @@ describe('AuthController', () => {
       // ACT
       request(app)
         .get('/auth/redirect')
-        .query({ client_id: 'clientId', code: 'wrongRequestToken' })
+        .query({ client_id: 'clientId', code: 'wrongRequestToken', redirect_url: 'redirectUrl' })
         // ASSERT
         .expect(404)
         .then(() => {
@@ -75,7 +89,7 @@ describe('AuthController', () => {
         .then(done);
     });
 
-    it('should return Created when client_id and token are valid', done => {
+    it('should return Found (redirect) when client_id and token are valid', done => {
       // ARRANGE
       const gitHubUser: any = { data: { id: 'gitHubUserId' } };
       axiosMock.post.mockReturnValue(Promise.resolve({ data: { access_token: 'accessToken' } }));
@@ -84,15 +98,14 @@ describe('AuthController', () => {
       // ACT
       request(app)
         .get('/auth/redirect')
-        .query({ client_id: 'clientId', code: 'requestToken' })
+        .query({ client_id: 'clientId', code: 'requestToken', redirect_url: 'redirectUrl' })
         // ASSERT
-        .expect(201)
+        .expect(302)
         .then(res => {
           expect(axiosMock.post).toBeCalled();
           expect(axiosMock.get).toBeCalled();
           expect(jwtManagerMock.create).toBeCalled();
           expect(jwtManagerMock.create).toBeCalledWith(gitHubUser.data.id, 'accessToken');
-          expect(res.text).toBe('header.payload.sign');
         })
         .then(done);
     });

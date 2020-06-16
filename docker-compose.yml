@@ -3,10 +3,13 @@ services:
   api:
     container_name: 'recipes-api'
     build: .
+    volumes:
+      - ./:/app
     ports:
-      - '3000:3000'
+      - '4000:4000'
     environment:
-      - PORT=3000
+      - NODE_ENV=dev
+      - PORT=4000
       - MONGO_URL=mongodb://recipes-mongo:27017
       - MONGO_DB_NAME=recipes
       - JWT_SIGN_PASSWORD=password

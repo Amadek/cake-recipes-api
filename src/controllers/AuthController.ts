@@ -15,12 +15,16 @@ export class AuthController {
   }
 
   public getAuth (req: Request, res: Response): void {
-    if (!req.query.client_id || typeof req.query.client_id !== 'string') throw new BadRequest();
+    if (!req.query.client_id || typeof req.query.client_id !== 'string'
+      || !req.query.redirect_url || typeof req.query.redirect_url !== 'string') throw new BadRequest();
 
-    const redirectUri: string = this._axios.getUri({
+    const internalRedirectUri: string = this._axios.getUri({
       method: 'GET',
       url: this._getBaseUrl(req) + '/redirect',
-      params: { client_id: req.query.client_id }
+      params: {
+        client_id: req.query.client_id,
+        redirect_url: req.query.redirect_url
+      }
     });
 
     const authorizeUri: string = this._axios.getUri({
@@ -28,7 +32,7 @@ export class AuthController {
       url: 'https://github.com/login/oauth/authorize',
       params: {
         client_id: req.query.client_id,
-        redirect_uri: 'http://' + redirectUri
+        redirect_uri: 'http://' + internalRedirectUri
       }
     });
 
@@ -37,15 +41,25 @@ export class AuthController {
 
   public getAuthRedirect (req: Request, res: Response, next: NextFunction): void {
     // If code aka request token not provided, throw Bad Request.
-    if (!req.query.client_id || typeof req.query.client_id !== 'string' || !req.query.code || typeof req.query.code !== 'string') throw new BadRequest();
+    if (!req.query.client_id || typeof req.query.client_id !== 'string'
+      || !req.query.code || typeof req.query.code !== 'string'
+      || !req.query.redirect_url || typeof req.query.redirect_url !== 'string') throw new BadRequest();
 
     const clientId: string = req.query.client_id;
     const requestToken: string = req.query.code;
+    const redirectUrl: string = req.query.redirect_url;
 
     Promise.resolve()
       .then(() => this._getAccessToken(clientId, requestToken))
       .then(accessToken => this._createJsonWebToken(accessToken))
-      .then(jwt => res.status(201).send(jwt))
+      .then(jwt => {
+        const redirectUri: string = this._axios.getUri({
+          method: 'GET',
+          url: redirectUrl,
+          params: { jwt }
+        });
+        res.redirect(redirectUri);
+      })
       .catch(next);
   }
 
