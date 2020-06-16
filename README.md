@@ -14,6 +14,11 @@ All you have to do is:
 ```
 npm start
 ``` 
+If you did some change simply:
+```
+npm run compile
+```
+to compile project. Container will see changes and restart immediately.
 
 ## How to buil a docker container ready to deploy?
 ```

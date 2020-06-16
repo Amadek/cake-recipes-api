@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "docker-compose build && docker-compose up",
+    "compile": "tsc",
     "build": "docker build -t cake-recipes-api .",
     "test": "jest"
   },

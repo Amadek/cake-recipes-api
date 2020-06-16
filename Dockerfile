@@ -4,7 +4,7 @@ ADD . /app
 
 WORKDIR /app
 
-RUN npm install && npx tsc
+RUN npm install && npm run compile
 
 USER node
 
