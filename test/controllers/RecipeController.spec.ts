@@ -106,7 +106,8 @@ describe('RecipeController', () => {
         .set('Authorization', 'Bearer jwt')
         // ASSERT
         .expect(201)
-        .then(() => {
+        .then(res => {
+          expect(res.body).toBeTruthy();
           expect(jwtManagerMock.parse).toBeCalled();
           expect(recipeParserMock.parse).toBeCalled();
           return db.collection('recipe').findOne({});

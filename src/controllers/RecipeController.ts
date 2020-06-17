@@ -39,7 +39,7 @@ export class RecipeController {
 
     Promise.resolve()
       .then(() => this._addRecipeToDb(recipe))
-      .then(() => res.status(201).send('Created'))
+      .then(({ insertedId }) => res.status(201).send(insertedId))
       .catch(next);
   }
 
