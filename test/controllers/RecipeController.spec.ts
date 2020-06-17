@@ -8,11 +8,13 @@ import { ITokenValidator } from '../../src/controllers/ITokenValidator';
 import request from 'supertest';
 import { IRecipeParser } from '../../src/controllers/IRecipeParser';
 import { Recipe } from '../../src/entities/Recipe';
+import { IJwtManager } from '../../src/controllers/IJwtManager';
+import { User } from '../../src/entities/User';
 
 describe('RecipeController', () => {
   const config: IConfig = new TestConfig();
   const app: Application = express();
-  const tokenValidatorMock: ITokenValidator & MockProxy<ITokenValidator> = mock<ITokenValidator>();
+  const jwtManagerMock: MockProxy<IJwtManager> & IJwtManager = mock<IJwtManager>();
   const recipeParserMock: IRecipeParser & MockProxy<IRecipeParser> = mock<IRecipeParser>();
   let connection: MongoClient;
   let db: Db;
@@ -27,13 +29,13 @@ describe('RecipeController', () => {
     })
     .then(() => {
       app.use(express.json());
-      app.use('/recipe', new RecipeController(tokenValidatorMock, recipeParserMock, db).route());
+      app.use('/recipe', new RecipeController(jwtManagerMock, recipeParserMock, db).route());
     })
   );
 
   beforeEach(() => db.collection('user').deleteMany({})
     .then(() => {
-      mockReset(tokenValidatorMock);
+      mockReset(jwtManagerMock);
       mockReset(recipeParserMock);
     })
   );
@@ -41,47 +43,47 @@ describe('RecipeController', () => {
   afterAll(() => connection.close());
 
   describe('POST /recipe', () => {
-    it('should return BadRequest when provided token is not valid', done => {
+    it('should return BadRequest when provided jwt is not valid', done => {
       // ARRANGE
-      tokenValidatorMock.validate.mockReturnValue(Promise.resolve(false));
+      jwtManagerMock.parse.mockReturnValue(null);
       // ACT
       request(app)
         .post('/recipe')
-        .set('Authorization', 'Bearer wrongToken')
+        .set('Authorization', 'Bearer wrongJwt')
         // ASSERT
         .expect(400)
         .then(() => {
-          expect(tokenValidatorMock.validate).toBeCalled()
+          expect(jwtManagerMock.parse).toBeCalled();
         })
         .then(done);
     });
 
     it('should return BadRequest when Authorization header not included', done => {
       // ARRANGE
-      tokenValidatorMock.validate.mockReturnValue(Promise.resolve(false));
+      jwtManagerMock.parse.mockReturnValue(null);
       // ACT
       request(app)
         .post('/recipe')
         // ASSERT
         .expect(400)
         .then(() => {
-          expect(tokenValidatorMock.validate).not.toBeCalled();
+          expect(jwtManagerMock.parse).not.toBeCalled();
         })
         .then(done);
     });
 
     it('should return BadRequest when recipe not parsed', done => {
       // ARRANGE
-      tokenValidatorMock.validate.mockReturnValue(Promise.resolve(true));
+      jwtManagerMock.parse.mockReturnValue({ id: 'id', accessToken: 'accessToken' });
       recipeParserMock.parse.mockReturnValue(null);
       // ACT
       request(app)
         .post('/recipe')
-        .set('Authorization', 'Bearer token')
+        .set('Authorization', 'Bearer jwt')
         // ASSERT
         .expect(400)
         .then(() => {
-          expect(tokenValidatorMock.validate).toBeCalled();
+          expect(jwtManagerMock.parse).toBeCalled();
           expect(recipeParserMock.parse).toBeCalled();
         })
         .then(done);
@@ -89,7 +91,8 @@ describe('RecipeController', () => {
 
     it('should return Created when recipe parsed and added to DB', done => {
       // ARRANGE
-      tokenValidatorMock.validate.mockReturnValue(Promise.resolve(true));
+      const user: User = { id: 'id', accessToken: 'accessToken' };
+      jwtManagerMock.parse.mockReturnValue(user);
       const recipe: Recipe = {
         name: 'name',
         description: 'description',
@@ -100,16 +103,18 @@ describe('RecipeController', () => {
       // ACT
       request(app)
         .post('/recipe')
-        .set('Authorization', 'Bearer token')
+        .set('Authorization', 'Bearer jwt')
         // ASSERT
         .expect(201)
-        .then(() => {
-          expect(tokenValidatorMock.validate).toBeCalled();
+        .then(res => {
+          expect(res.body).toBeTruthy();
+          expect(jwtManagerMock.parse).toBeCalled();
           expect(recipeParserMock.parse).toBeCalled();
           return db.collection('recipe').findOne({});
         })
         .then(recipeFromDB => {
           expect(recipeFromDB).toEqual(recipe);
+          expect(recipeFromDB.ownerId).toBe(user.id);
         })
         .then(done);
     });

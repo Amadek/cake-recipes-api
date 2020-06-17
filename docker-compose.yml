@@ -3,25 +3,20 @@ services:
   api:
     container_name: 'recipes-api'
     build: .
+    volumes:
+      - ./:/app
     ports:
-      - '3000:3000'
+      - '4000:4000'
     environment:
-      - PORT=3000
+      - NODE_ENV=dev
+      - PORT=4000
       - MONGO_URL=mongodb://recipes-mongo:27017
       - MONGO_DB_NAME=recipes
+      - JWT_SIGN_PASSWORD=password
+      # In docker-compose.override.yml to set.
+      # - GITHUB_CLIENT_SECRET=*****
   db:
     container_name: 'recipes-mongo'
     image: 'mongo'
     ports: 
       - '27017:27017'
-  api-auth:
-    container_name: 'recipes-api-auth'
-    image: 'amadek/api-auth:0.0.3'
-    ports:
-      - '8181:8181'
-    environment: 
-      - PORT=8181
-      - PUT_TOKEN_URL=http://recipes-api:3000/token
-      # In docker-compose.override.yml to set.
-      # - GITHUB_CLIENT_ID=*****
-      # - GITHUB_CLIENT_SECRET=*****
