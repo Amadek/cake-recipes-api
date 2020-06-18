@@ -18,6 +18,7 @@ export class RecipeParser implements IRecipeParser {
     if (!isValid) return null;
 
     return {
+      _id: recipeJson._id,
       name: recipeJson.name,
       description: recipeJson.description,
       howTo: recipeJson.howTo,
