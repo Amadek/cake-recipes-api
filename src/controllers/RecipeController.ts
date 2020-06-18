@@ -89,7 +89,7 @@ export class RecipeController {
   public patchRecipe (req: Request, res: Response, next: NextFunction): void {
     const user: User = this._parseJwt(req);
     const recipe: Recipe | null = this._parseRecipe(req.body);
-    if (!recipe) throw new BadRequest();
+    if (!recipe) throw new BadRequest('Failed to parse recipe.');
     recipe.ownerId = user.id;
 
     Promise.resolve()
@@ -120,12 +120,12 @@ export class RecipeController {
   }
 
   private _parseJwt (req: Request): User {
-    if (!req.headers.authorization) throw new BadRequest();
+    if (!req.headers.authorization) throw new BadRequest('Invalid JWT.');
 
     const jwt = req.headers.authorization.replace('Bearer ', '');
     const user: User | null = this._jwtManager.parse(jwt);
 
-    if (!user) throw new BadRequest();
+    if (!user) throw new BadRequest('Invalid JWT. User not parsed.');
 
     return user;
   }
@@ -140,8 +140,6 @@ export class RecipeController {
 
   private _updateRecipeInDb (recipe: Recipe | null): Promise<any> {
     if (!recipe) throw new BadRequest();
-
-    console.log(recipe);
 
     return this._db.collection('recipe').updateOne({ _id: new ObjectID(recipe._id) }, { $set: { name: recipe.name, description: recipe.description } });
   }
