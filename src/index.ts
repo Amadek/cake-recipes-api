@@ -21,7 +21,7 @@ Promise.resolve()
   .then(() => new DbConnector(config).connect())
   .then(db => new DbInitializer(db).initialize())
   .then(db => {
-    app.use(cors({ origin: 'http://localhost:3000', methods: ['GET', 'PATCH', 'PUT', 'POST'] }));
+    app.use(cors({ origin: '*', methods: ['GET', 'PATCH', 'PUT', 'POST'] }));
     app.use(express.json());
     app.use('/auth', new AuthController(axios, jwtManager, config).route());
     app.use('/recipe', new RecipeController(jwtManager, new RecipeParser(), db).route());
