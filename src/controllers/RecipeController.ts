@@ -144,7 +144,7 @@ export class RecipeController {
   private _checkPermission (userId: number | undefined): Promise<void> {
     return Promise.resolve()
       // Checks is any associated permission with this userId.
-      .then(() => this._db.collection('permission').count({ userId }, { limit: 1 }))
+      .then(() => this._db.collection('permission').countDocuments({ userId }, { limit: 1 }))
       .then(count => {
         if (count === 0) throw new Forbidden('You do not have sufficient permissions.');
       });

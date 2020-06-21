@@ -4,12 +4,12 @@ import { TestConfig } from '../TestConfig';
 import express, { Application } from 'express';
 import { MongoClient, Db, ObjectID } from 'mongodb';
 import { RecipeController } from '../../src/controllers/RecipeController';
-import { ITokenValidator } from '../../src/controllers/ITokenValidator';
 import request from 'supertest';
 import { IRecipeParser } from '../../src/controllers/IRecipeParser';
 import { Recipe } from '../../src/entities/Recipe';
 import { IJwtManager } from '../../src/controllers/IJwtManager';
 import { User } from '../../src/entities/User';
+import { Permission } from '../../src/entities/Permission';
 
 describe('RecipeController', () => {
   const config: IConfig = new TestConfig();
@@ -33,12 +33,15 @@ describe('RecipeController', () => {
     })
   );
 
-  beforeEach(() => db.collection('user').deleteMany({})
-    .then(() => {
-      mockReset(jwtManagerMock);
-      mockReset(recipeParserMock);
-    })
-  );
+  beforeEach(() => {
+    return Promise.resolve()
+      .then(() => db.collection('permission').deleteMany({}))
+      .then(() => db.collection('recipe').deleteMany({}))
+      .then(() => {
+        mockReset(jwtManagerMock);
+        mockReset(recipeParserMock);
+      });
+  });
 
   afterAll(() => connection.close());
 
@@ -68,7 +71,7 @@ describe('RecipeController', () => {
         .then(res => {
           expect(res.body.length).toBe(2);
         })
-        .then(done);
+        .then(() => done());
     });
   });
 
@@ -90,19 +93,19 @@ describe('RecipeController', () => {
         .then(res => {
           expect(res.body.name).toBe(recipe.name);
         })
-        .then(done);
+        .then(() => done());
     });
 
-    it.only('should not get recipe when not exists', done => {
+    it('should return NotFound when recipe with provided Id not exists', done => {
       request(app)
         .get(`/recipe/id/${new ObjectID().toHexString()}`)
         .expect(404)
-        .then(done);
+        .then(() => done());
     });
   });
 
   describe('POST /recipe', () => {
-    it('should return BadRequest when provided jwt is not valid', done => {
+    it('should return Unauthorized when provided jwt is not valid', done => {
       // ARRANGE
       jwtManagerMock.parse.mockReturnValue(null);
       // ACT
@@ -110,61 +113,73 @@ describe('RecipeController', () => {
         .post('/recipe')
         .set('Authorization', 'Bearer wrongJwt')
         // ASSERT
-        .expect(400)
+        .expect(401)
         .then(() => {
           expect(jwtManagerMock.parse).toBeCalled();
         })
-        .then(done);
+        .then(() => done());
     });
 
-    it('should return BadRequest when Authorization header not included', done => {
+    it('should return Unauthorized when Authorization header not included', done => {
       // ARRANGE
       jwtManagerMock.parse.mockReturnValue(null);
       // ACT
       request(app)
         .post('/recipe')
         // ASSERT
-        .expect(400)
+        .expect(401)
         .then(() => {
           expect(jwtManagerMock.parse).not.toBeCalled();
         })
-        .then(done);
+        .then(() => done());
     });
 
     it('should return BadRequest when recipe not parsed', done => {
       // ARRANGE
-      jwtManagerMock.parse.mockReturnValue({ id: 1, accessToken: 'accessToken' });
+      const user: User = { id: 1, accessToken: 'accessToken' };
+      const permission: Permission = { userId: user.id };
+
+      jwtManagerMock.parse.mockReturnValue(user);
       recipeParserMock.parse.mockReturnValue(null);
       // ACT
-      request(app)
-        .post('/recipe')
-        .set('Authorization', 'Bearer jwt')
-        // ASSERT
-        .expect(400)
+      Promise.resolve()
+        .then(() => db.collection('permission').insertOne(permission))
+        .then(() => request(app)
+          .post('/recipe')
+          .set('Authorization', 'Bearer jwt')
+          // ASSERT
+          .expect(400)
+        )
         .then(() => {
           expect(jwtManagerMock.parse).toBeCalled();
           expect(recipeParserMock.parse).toBeCalled();
         })
-        .then(done);
+        .then(() => done());
     });
 
     it('should return Created when recipe parsed and added to DB', done => {
       // ARRANGE
       const user: User = { id: 1, accessToken: 'accessToken' };
-      jwtManagerMock.parse.mockReturnValue(user);
+      const permission: Permission = { userId: user.id };
       const recipe: Recipe = {
         name: 'name',
         description: 'description',
         howTo: 'howTo',
         suplements: ['suplement']
       };
+
+      jwtManagerMock.parse.mockReturnValue(user);
       recipeParserMock.parse.mockReturnValue(recipe);
-      // ACT
-      request(app)
-        .post('/recipe')
-        .set('Authorization', 'Bearer jwt')
-        // ASSERT
-        .expect(201)
+
+      Promise.resolve()
+      .then(() => db.collection('permission').insertOne(permission))
+        // ACT
+        .then(() => request(app)
+          .post('/recipe')
+          .set('Authorization', 'Bearer jwt')
+          // ASSERT
+          .expect(201)
+        )
         .then(res => {
           expect(res.body).toBeTruthy();
           expect(jwtManagerMock.parse).toBeCalled();
@@ -175,7 +190,84 @@ describe('RecipeController', () => {
           expect(recipeFromDB).toEqual(recipe);
           expect(recipeFromDB.ownerId).toBe(user.id);
         })
-        .then(done);
+        .then(() => done());
+    });
+  });
+
+  describe('PATCH /recipe', () => {
+    it('should update recipe', done => {
+      // ARRANGE
+      const user: User = { id: 1, accessToken: 'accessToken' };
+      const permission: Permission = { userId: user.id };
+      const recipe: Recipe = {
+        description: 'recipeDescription',
+        howTo: 'recipeHowTo',
+        name: 'recipeName1',
+        ownerId: 1,
+        suplements: []
+      };
+
+      jwtManagerMock.parse.mockReturnValue(user);
+      recipeParserMock.parse.mockReturnValue(recipe);
+
+      Promise.resolve()
+        .then(() => db.collection('permission').insertOne(permission))
+        .then(() => db.collection('recipe').insertOne(recipe))
+        .then(({ insertedId }) => {
+          const updatedRecipe: Recipe = {
+            _id: insertedId,
+            description: 'recipeDescription',
+            howTo: 'recipeHowTo',
+            name: 'recipeName1',
+            ownerId: 1,
+            suplements: []
+          };
+          return updatedRecipe;
+        })
+        // ACT, ASSERT
+        .then(updatedRecipe => request(app)
+          .patch(`/recipe`)
+          .set('Authorization', 'Bearer jwt')
+          .send(updatedRecipe)
+          .expect(200)
+        )
+        .then(() => done());
+    });
+
+    it('should need permissions', done => {
+      // ARRANGE
+      const user: User = { id: 1, accessToken: 'accessToken' };
+      jwtManagerMock.parse.mockReturnValue(user);
+
+      const recipe: Recipe = {
+        description: 'recipeDescription',
+        howTo: 'recipeHowTo',
+        name: 'recipeName1',
+        ownerId: 1,
+        suplements: []
+      };
+
+      Promise.resolve()
+        .then(() => db.collection('recipe').insertOne(recipe))
+        .then(({ insertedId }) => {
+          const updatedRecipe: Recipe = {
+            _id: insertedId,
+            description: 'recipeDescription',
+            howTo: 'recipeHowTo',
+            name: 'recipeName1',
+            ownerId: 1,
+            suplements: []
+          };
+          return updatedRecipe;
+        })
+        // ACT, ASSERT
+        .then(updatedRecipe => request(app)
+          .patch(`/recipe`)
+          .set('Authorization', 'Bearer jwt')
+          .send(updatedRecipe)
+          .expect(403)
+          .then(() => done())
+        );
     });
   });
 });
