@@ -2,7 +2,7 @@ import { mockReset, mock, MockProxy } from 'jest-mock-extended';
 import { IConfig } from '../../src/IConfig';
 import { TestConfig } from '../TestConfig';
 import express, { Application } from 'express';
-import { MongoClient, Db } from 'mongodb';
+import { MongoClient, Db, ObjectID } from 'mongodb';
 import { RecipeController } from '../../src/controllers/RecipeController';
 import { ITokenValidator } from '../../src/controllers/ITokenValidator';
 import request from 'supertest';
@@ -42,6 +42,65 @@ describe('RecipeController', () => {
 
   afterAll(() => connection.close());
 
+  describe('GET /recipe/name/:recipeName', () => {
+    it('should get recipes', done => {
+      // ARRANGE
+      const recipe1: Recipe = {
+        description: 'recipeDescription',
+        howTo: 'recipeHowTo',
+        name: 'recipeName1',
+        ownerId: 1,
+        suplements: []
+      };
+
+      const recipe2: Recipe = {
+        description: 'recipeDescription',
+        howTo: 'recipeHowTo',
+        name: 'recipeName2',
+        ownerId: 1,
+        suplements: []
+      };
+
+      db.collection('recipe').insertMany([ recipe1, recipe2 ])
+        // ACT
+        .then(() => request(app).get('/recipe/name/Name').expect(200))
+        // ASSERT
+        .then(res => {
+          expect(res.body.length).toBe(2);
+        })
+        .then(done);
+    });
+  });
+
+  describe('GET /recipe/id/:recipeId', () => {
+    it('should get recipe by Id', done => {
+      // ARRANGE
+      const recipe: Recipe = {
+        description: 'recipeDescription',
+        howTo: 'recipeHowTo',
+        name: 'recipeName1',
+        ownerId: 1,
+        suplements: []
+      };
+
+      db.collection('recipe').insertOne(recipe)
+        // ACT
+        .then(({ insertedId }) => request(app).get(`/recipe/id/${insertedId}`).expect(200))
+        // ASSERT
+        .then(res => {
+          expect(res.body.name).toBe(recipe.name);
+        })
+        .then(done);
+    });
+
+    it.only('should not get recipe when not exists', done => {
+      request(app)
+        .get(`/recipe/id/${new ObjectID().toHexString()}`)
+        .expect(404)
+        .then(done);
+    });
+  });
+
   describe('POST /recipe', () => {
     it('should return BadRequest when provided jwt is not valid', done => {
       // ARRANGE
@@ -74,7 +133,7 @@ describe('RecipeController', () => {
 
     it('should return BadRequest when recipe not parsed', done => {
       // ARRANGE
-      jwtManagerMock.parse.mockReturnValue({ id: 'id', accessToken: 'accessToken' });
+      jwtManagerMock.parse.mockReturnValue({ id: 1, accessToken: 'accessToken' });
       recipeParserMock.parse.mockReturnValue(null);
       // ACT
       request(app)
@@ -91,7 +150,7 @@ describe('RecipeController', () => {
 
     it('should return Created when recipe parsed and added to DB', done => {
       // ARRANGE
-      const user: User = { id: 'id', accessToken: 'accessToken' };
+      const user: User = { id: 1, accessToken: 'accessToken' };
       jwtManagerMock.parse.mockReturnValue(user);
       const recipe: Recipe = {
         name: 'name',

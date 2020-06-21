@@ -1,7 +1,7 @@
 
 export class User {
   /** User Id. */
-  public id?: string;
+  public id?: number;
 
   /** OAuth access token. */
   public accessToken?: string;

@@ -1,11 +1,15 @@
 FROM node
 
-ADD . /app
-
 WORKDIR /app
 
-RUN npm install && npm run compile
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+RUN npm run build
 
 USER node
 
-CMD [ "./run.sh" ]
+CMD [ "npm", "start" ]
