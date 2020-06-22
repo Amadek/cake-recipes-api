@@ -234,7 +234,7 @@ describe('RecipeController', () => {
         .then(() => done());
     });
 
-    it('should need permissions', done => {
+    it('should need permission', done => {
       // ARRANGE
       const user: User = { id: 1, accessToken: 'accessToken' };
       jwtManagerMock.parse.mockReturnValue(user);
@@ -268,6 +268,62 @@ describe('RecipeController', () => {
           .expect(403)
           .then(() => done())
         );
+    });
+  });
+
+  describe('PUT /recipe/id/:id', () => {
+    it('should remove recipe', done => {
+      // ARRANGE
+      const user: User = { id: 1, accessToken: 'accessToken' };
+      const recipe: Recipe = {
+        description: 'recipeDescription',
+        howTo: 'recipeHowTo',
+        name: 'recipeName1',
+        ownerId: 1,
+        suplements: []
+      };
+
+      jwtManagerMock.parse.mockReturnValue(user);
+
+      Promise.resolve()
+        .then(() => db.collection('recipe').insertOne(recipe))
+        // ACT
+        .then(({ insertedId }) => request(app)
+          .put('/recipe/id/' + insertedId)
+          .set('Authorization', 'Bearer jwt')
+          // ASSERT
+          .expect(403)
+        )
+        .then(() => done());
+    });
+
+    it('should need permission', done => {
+      // ARRANGE
+      const user: User = { id: 1, accessToken: 'accessToken' };
+      const permission: Permission = { userId: user.id };
+      const recipe: Recipe = {
+        description: 'recipeDescription',
+        howTo: 'recipeHowTo',
+        name: 'recipeName1',
+        ownerId: 1,
+        suplements: []
+      };
+
+      jwtManagerMock.parse.mockReturnValue(user);
+
+      Promise.resolve()
+        .then(() => db.collection('permission').insertOne(permission))
+        .then(() => db.collection('recipe').insertOne(recipe))
+        // ACT
+        .then(({ insertedId }) => request(app)
+          .put('/recipe/id/' + insertedId)
+          .set('Authorization', 'Bearer jwt')
+          // ASSERT
+          .expect(200)
+        )
+        .then(() => db.collection('recipe').countDocuments({}))
+        .then(count => expect(count).toBe(0))
+        .then(() => done());
     });
   });
 });
