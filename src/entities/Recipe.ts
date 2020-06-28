@@ -7,7 +7,7 @@ export class Recipe {
   public _id?: string;
 
   /** Recipe owner Id. */
-  public ownerId?: string;
+  public ownerId?: number;
 
   /**
    * Recipe name.

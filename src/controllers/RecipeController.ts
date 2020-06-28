@@ -1,6 +1,6 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import { Recipe } from '../entities/Recipe';
-import { BadRequest } from 'http-errors';
+import { BadRequest, Forbidden, Unauthorized, NotFound } from 'http-errors';
 import { Db } from 'mongodb';
 import { IRecipeParser } from './IRecipeParser';
 import { IJwtManager } from './IJwtManager';
@@ -38,7 +38,7 @@ export class RecipeController {
    */
   public getRecipesByName (req: Request, res: Response, next: NextFunction): void {
     const recipeName: string = req.params.recipeName;
-    if (!recipeName) throw new BadRequest();
+    if (!recipeName) throw new BadRequest('recipeName not provided.');
 
     Promise.resolve()
       .then(() => this._getRecipesByNameFromDb(recipeName))
@@ -54,10 +54,10 @@ export class RecipeController {
    */
   public getRecipeById (req: Request, res: Response, next: NextFunction): void {
     const recipeId: string = req.params.recipeId;
-    if (!recipeId) throw new BadRequest();
+    if (!recipeId || !ObjectID.isValid(recipeId)) throw new BadRequest('recipeId is invalid or not provided.');
 
     Promise.resolve()
-      .then(() => this._getRecipeByIdFromDb(recipeId))
+      .then(() => this._getRecipeByIdFromDb(new ObjectID(recipeId)))
       .then(recipe => res.status(200).send(recipe))
       .catch(next);
   }
@@ -70,12 +70,16 @@ export class RecipeController {
    */
   public postRecipe (req: Request, res: Response, next: NextFunction): void {
     const user: User = this._parseJwt(req);
-    const recipe: Recipe | null = this._parseRecipe(req.body);
-    if (!recipe) throw new BadRequest();
-    recipe.ownerId = user.id;
 
     Promise.resolve()
-      .then(() => this._addRecipeToDb(recipe))
+      .then(() => this._checkPermission(user.id))
+      .then(() => {
+        const recipe: Recipe | null = this._parseRecipe(req.body);
+        if (!recipe) throw new BadRequest();
+        recipe.ownerId = user.id;
+        return recipe;
+      })
+      .then(recipe => this._addRecipeToDb(recipe))
       .then(({ insertedId }) => res.status(201).send(insertedId))
       .catch(next);
   }
@@ -88,12 +92,15 @@ export class RecipeController {
    */
   public patchRecipe (req: Request, res: Response, next: NextFunction): void {
     const user: User = this._parseJwt(req);
-    const recipe: Recipe | null = this._parseRecipe(req.body);
-    if (!recipe) throw new BadRequest('Failed to parse recipe.');
-    recipe.ownerId = user.id;
 
     Promise.resolve()
-      .then(() => this._updateRecipeInDb(recipe))
+      .then(() => this._checkPermission(user.id))
+      .then(() => {
+        const recipe: Recipe | null = this._parseRecipe(req.body);
+        if (!recipe) throw new BadRequest('Failed to parse recipe.');
+        return recipe;
+      })
+      .then(recipe => this._updateRecipeInDb(recipe))
       .then(() => res.status(200).send('Updated.'))
       .catch(next);
   }
@@ -105,12 +112,16 @@ export class RecipeController {
    * @param next express callback
    */
   public putRecipe (req: Request, res: Response, next: NextFunction): void {
-    this._parseJwt(req);
-    const recipeId: string = req.params.recipeId;
-    if (!recipeId) throw new BadRequest();
+    const user: User = this._parseJwt(req);
 
     Promise.resolve()
-      .then(() => this._deleteRecipeFromDb(recipeId))
+      .then(() => this._checkPermission(user.id))
+      .then(() => {
+        const recipeId: string = req.params.recipeId;
+        if (!recipeId) throw new BadRequest('recipeId not provided.');
+        return recipeId;
+      })
+      .then(recipeId => this._deleteRecipeFromDb(recipeId))
       .then(() => res.status(200).send('Deleted.'))
       .catch(next);
   }
@@ -120,22 +131,35 @@ export class RecipeController {
   }
 
   private _parseJwt (req: Request): User {
-    if (!req.headers.authorization) throw new BadRequest('Invalid JWT.');
+    if (!req.headers.authorization) throw new Unauthorized('Invalid JWT.');
 
     const jwt = req.headers.authorization.replace('Bearer ', '');
     const user: User | null = this._jwtManager.parse(jwt);
 
-    if (!user) throw new BadRequest('Invalid JWT. User not parsed.');
+    if (!user) throw new Unauthorized('Invalid JWT. User not parsed.');
 
     return user;
+  }
+
+  private _checkPermission (userId: number | undefined): Promise<void> {
+    return Promise.resolve()
+      // Checks is any associated permission with this userId.
+      .then(() => this._db.collection('permission').countDocuments({ userId }, { limit: 1 }))
+      .then(count => {
+        if (count === 0) throw new Forbidden('You do not have sufficient permissions.');
+      });
   }
 
   private _getRecipesByNameFromDb (recipeName: string): Promise<Recipe[]> {
     return this._db.collection('recipe').find({ name: { $regex: `.*${recipeName}.*` } }).toArray();
   }
 
-  private _getRecipeByIdFromDb (recipeId: string): Promise<Recipe | null> {
-    return this._db.collection('recipe').findOne({ _id: new ObjectID(recipeId) });
+  private _getRecipeByIdFromDb (recipeId: ObjectID): Promise<Recipe> {
+    return this._db.collection('recipe').find({ _id: recipeId }, { limit: 1 }).toArray()
+      .then(recipes => {
+        if (recipes.length === 0) throw new NotFound('Not found recipe with specified Id.');
+        return recipes[0];
+      });
   }
 
   private _updateRecipeInDb (recipe: Recipe | null): Promise<any> {

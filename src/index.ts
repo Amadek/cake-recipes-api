@@ -10,7 +10,6 @@ import { RecipeParser } from './controllers/RecipeParser';
 import { AuthController } from './controllers/AuthController';
 import { IJwtManager } from './controllers/IJwtManager';
 import { JwtManagerHS256 } from './controllers/JwtManagerHS256';
-import cors from 'cors';
 
 const app: Application = express();
 const config: IConfig = new Config();
@@ -21,7 +20,11 @@ Promise.resolve()
   .then(() => new DbConnector(config).connect())
   .then(db => new DbInitializer(db).initialize())
   .then(db => {
-    app.use(cors({ origin: '*', methods: ['GET', 'PATCH', 'PUT', 'POST'] }));
+    app.use((_req, res) => {
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+    });
     app.use(express.json());
     app.use('/auth', new AuthController(axios, jwtManager, config).route());
     app.use('/recipe', new RecipeController(jwtManager, new RecipeParser(), db).route());
