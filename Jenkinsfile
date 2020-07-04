@@ -1,9 +1,12 @@
 pipeline {
   agent { dockerfile true }
   stages {
+    stage('Build') {
+      sh 'npm ci'
+    }
     stage('Test') {
       steps {
-        sh 'ls -a'
+        sh 'npm test'
       }
     }
   }
