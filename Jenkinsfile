@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Test') {
       steps {
-        sh 'npm test -- --updateSnapshot'
+        sh 'ls node_modules/.bin'
       }
     }
   }
