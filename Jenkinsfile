@@ -14,6 +14,6 @@ node {
     }
   }
   stage('Publish') {
-    container.publish("${env.BUILD_ID}")
+    container.push("${env.BUILD_ID}")
   }
 }
