@@ -1,15 +1,11 @@
 node {
-  checkout scm
-  def container = docker.build("amadek/cake-recipes-api:${env.BUILD_ID}")
-  container.inside {
-    stage('Build') {
-      sh 'ls -a'
-      sh 'npm ci'
-      sh 'ls -a'
-      sh 'npm run build'
-      sh 'ls -a'
-    }
-    stage('Test') {
+  def container 
+  stage('Build') {
+    checkout scm
+    docker.build("amadek/cake-recipes-api:${env.BUILD_ID}")
+  }
+  stage('Test') {
+    docker.inside {
       sh 'npm test'
     }
   }
