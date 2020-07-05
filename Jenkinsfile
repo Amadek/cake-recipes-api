@@ -5,7 +5,7 @@ node {
     container = docker.build("amadek/cake-recipes-api:${env.BUILD_ID}")
   }
   stage('Test') {
-    docker.inside {
+    container.inside {
       sh 'npm test'
     }
   }
