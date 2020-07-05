@@ -14,6 +14,8 @@ node {
     }
   }
   stage('Publish') {
-    container.push("${env.BUILD_ID}")
+    docker.withRegistry('https://hub.docker.com/', '	37b58f9a-df07-4839-80fe-13ac9ba5e539') {
+      container.push("${env.BUILD_ID}")
+    }
   }
 }
