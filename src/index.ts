@@ -27,6 +27,7 @@ Promise.resolve()
       next();
     });
     app.use(express.json());
+    app.get('/', (req, res) => res.send('Hello watchtower!'));
     app.use('/auth', new AuthController(axios, jwtManager, config).route());
     app.use('/recipe', new RecipeController(jwtManager, new RecipeParser(), db).route());
     // Any other route should throw Not Found.
