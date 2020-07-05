@@ -2,7 +2,7 @@ node {
   def container 
   stage('Build') {
     checkout scm
-    docker.build("amadek/cake-recipes-api:${env.BUILD_ID}")
+    container = docker.build("amadek/cake-recipes-api:${env.BUILD_ID}")
   }
   stage('Test') {
     docker.inside {
