@@ -18,12 +18,13 @@ const jwtManager: IJwtManager = new JwtManagerHS256(config);
 
 Promise.resolve()
   .then(() => new DbConnector(config).connect())
-  .then(db => new DbInitializer(db).initialize())
+  .then(db => new DbInitializer(db, config).initialize())
   .then(db => {
-    app.use((_req, res) => {
+    app.use((_req, res, next) => {
       res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+      res.header('Access-Control-Allow-Methods', 'GET,PATCH,PUT,POST,DELETE,OPTIONS');
       res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+      next();
     });
     app.use(express.json());
     app.use('/auth', new AuthController(axios, jwtManager, config).route());

@@ -1,28 +1,13 @@
 {
   "name": "cake-recipes-api",
   "version": "1.0.0",
-  "description": "API for cake recipes store",
-  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "jest"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Amadek/cake-recipes-api.git"
-  },
-  "keywords": [
-    "cake",
-    "recipes",
-    "api"
-  ],
   "author": "Amadek",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Amadek/cake-recipes-api/issues"
-  },
-  "homepage": "https://github.com/Amadek/cake-recipes-api#readme",
   "dependencies": {
     "axios": "^0.19.2",
     "express": "^4.17.1",
