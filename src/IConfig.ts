@@ -17,4 +17,7 @@ export interface IConfig {
 
   /** Password for signing JSON Web Tokens using for authorisation. */
   jwtSignPassword: string;
+
+  /** App administrator Github Id */
+  adminGithubId: number;
 }

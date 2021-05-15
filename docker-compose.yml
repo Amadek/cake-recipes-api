@@ -14,6 +14,7 @@ services:
       - JWT_SIGN_PASSWORD=password
       # In docker-compose.override.yml to set.
       # - GITHUB_CLIENT_SECRET=*****
+      # - ADMIN_GITHUB_ID=*****
   db:
     container_name: 'recipes-mongo'
     image: 'mongo'
