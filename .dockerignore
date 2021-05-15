@@ -1,6 +1,5 @@
 node_modules/
 dist/
-test/
 .gitignore
 .mocharc.json
 docker-compose.yml
